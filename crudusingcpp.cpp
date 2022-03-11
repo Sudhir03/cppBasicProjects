@@ -1,8 +1,7 @@
 using namespace std;
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <iomanip>
+// #include <iomanip>
 
 class Students
 {
@@ -12,7 +11,6 @@ class Students
 public:
     void getData()
     {
-        cout << "Enter the details of student" << endl;
         cout << "Enter roll/id" << endl;
         cin >> roll;
         cout << "Enter name of student" << endl;
@@ -37,7 +35,7 @@ public:
     {
         ifstream fin;
         fin.open("studentsRecords.dat", ios::in);
-        if (!fin.is_open())
+        if (!fin)
         {
             cout << "File not found!" << endl;
         }
@@ -82,12 +80,77 @@ public:
         return found;
     }
 
-    void updateRecord()
+    void updateRecord(int r)
     {
+        fstream file;
+        file.open("studentsRecords.dat", ios::in | ios::out | ios::ate | ios::binary);
+        if (!file)
+        {
+            cout << "File not found!" << endl;
+        }
+        else
+        {
+            file.seekg(0);
+            file.read((char *)this, sizeof(*this));
+            while (!file.eof())
+            {
+                if (roll == r)
+                {
+                    file.seekp(file.tellp() - sizeof(*this));
+                    cout << "Enter new details to update record" << endl;
+                    getData();
+                    file.write((char *)this, sizeof(*this));
+                }
+                file.read((char *)this, sizeof(*this));
+            }
+            file.close();
+        }
     }
 
-    void deleteRecord()
+    void deleteRecord(int r)
     {
+        ifstream fin;
+        ofstream fout;
+
+        fin.open("studentsRecords.dat", ios::in | ios::binary);
+        if (!fin)
+        {
+            cout << "File not found!" << endl;
+        }
+        else
+        {
+            fout.open("tempRecordFile.dat", ios::out | ios::binary);
+            fin.read((char *)this, sizeof(*this));
+
+            while (!fin.eof())
+            {
+                cout << roll << endl;
+                if (roll != r)
+                {
+                    fout.write((char *)this, sizeof(*this));
+                }
+                fin.read((char *)this, sizeof(*this));
+            }
+            fout.close();
+            fin.close();
+            remove("studentsRecords.dat");
+            rename("tempRecordFile.dat", "studentsRecords.dat");
+        }
+    }
+
+    void sortRecord()
+    {
+        Students *ptr;
+        ptr = new Students[10];
+        fstream file;
+        file.open("studentsRecords.dat", ios::in | ios::out | ios::ate | ios::binary);
+        if (!file)
+        {
+            cout << "File not found!" << endl;
+        }
+        else
+        {
+        }
     }
 };
 
@@ -109,6 +172,7 @@ int main()
     switch (choice)
     {
     case 1:
+        cout << "Enter the details of student" << endl;
         s.getData();
         s.storeData();
         break;
@@ -131,10 +195,22 @@ int main()
         }
         break;
     case 4:
-        s.updateRecord();
+        cout << "Enter roll number to find and update record" << endl;
+        cin >> search;
+        if (s.searchByRoll(search))
+        {
+            s.updateRecord(search);
+        }
+        else
+        {
+            cout << "Record not found!" << endl;
+        }
+
         break;
     case 5:
-        s.deleteRecord();
+        cout << "Enter roll number to delete record" << endl;
+        cin >> search;
+        s.deleteRecord(search);
         break;
     case 6:
         exit(6);
@@ -142,6 +218,6 @@ int main()
     default:
         cout << "Invalid Choice!" << endl;
     }
-
+    s.sortRecord();
     return 0;
 }
