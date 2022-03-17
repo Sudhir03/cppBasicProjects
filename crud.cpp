@@ -1,8 +1,12 @@
 using namespace std;
-
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <iomanip>
+#include <conio.h>
+
+bool isDataReaded;
+const string filename("records.dat");
 
 class Student
 {
@@ -23,6 +27,9 @@ public:
     }
 };
 
+Student *SortedMerge(Student *&, Student *&);
+void FrontBackSplit(Student *, Student *&, Student *&);
+
 void insertAtTail(Student *&head, int r, string n)
 {
 
@@ -42,53 +49,48 @@ void insertAtTail(Student *&head, int r, string n)
     temp->next = p;
 }
 
+bool readFromDisk(Student *&head)
+{
+
+    ifstream file;
+    file.open(filename, ios::in | ios::binary);
+    if (file.fail())
+    {
+        cout << "File not found!" << endl
+             << "Restart Your Program" << endl;
+        return false;
+    }
+
+    Student toReadData;
+
+    file.read((char *)&toReadData, sizeof(toReadData));
+    while (!file.eof())
+    {
+        insertAtTail(head, toReadData.roll, toReadData.name);
+        file.read((char *)&toReadData, sizeof(toReadData));
+    }
+    file.close();
+    return true;
+}
+
 void display(Student *head)
 {
-    Student *temp = head;
+
     if (head == NULL)
     {
         cout << "No records to show" << endl;
         return;
     }
-
+    cout << endl
+         << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
+    Student *temp = head;
     while (temp != NULL)
     {
-        cout << temp->roll << "\t" << temp->name << endl;
+
+        cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl;
         temp = temp->next;
     }
 }
-
-// void readData(Student *&head)
-// {
-//     cout << "in read data" << endl;
-//     Student *temp = head;
-//     Student *ptr;
-//     Student obj;
-
-//     ifstream file;
-//     file.open("records.dat", ios::in | ios ::binary);
-
-//     if (file.fail())
-//     {
-//         cout << "Error while opening file" << endl;
-//     }
-//     else
-//     {
-//         file.read((char *)&ptr, sizeof(ptr));
-//         display(temp);
-//         while (!file.eof())
-//         {
-//             display(temp);
-//             cout << "before creating a node" << endl;
-//             cout << temp->roll;
-//             insertAtTail(temp, ptr->roll);
-//             cout << "after creating a node" << endl;
-//             display(temp);
-//             file.read((char *)&ptr, sizeof(ptr));
-//         }
-//     }
-//     file.close();
-// }
 
 void search(Student *head, int key)
 {
@@ -98,7 +100,8 @@ void search(Student *head, int key)
     {
         if (temp->roll == key)
         {
-            cout << "Record found with roll number " << key << endl;
+            cout << endl
+                 << "Record found with roll number " << key << endl;
             cout << temp->roll << "\t" << temp->name << endl;
             flag = true;
             break;
@@ -107,7 +110,7 @@ void search(Student *head, int key)
     }
     if (!flag)
     {
-        cout << "Record not found wit roll number " << key << endl;
+        cout << "Record not found with roll number " << key << endl;
     }
 }
 
@@ -121,8 +124,12 @@ void updateRecord(Student *&head, int key)
     {
         if (temp->roll == key)
         {
-            cout << "Record found with roll number " << key << endl;
-            cout << temp->roll << "\t" << temp->name << endl;
+            cout << endl
+                 << "Record found with roll number " << key << endl;
+            cout << endl
+                 << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
+            cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl
+                 << endl;
             cout << "Press 1 to update roll number:" << endl;
             cout << "Press 2  to update name:" << endl;
             cout << "Press 3 to update both:" << endl;
@@ -131,7 +138,8 @@ void updateRecord(Student *&head, int key)
             switch (choice)
             {
             case 1:
-                cout << "Enter new roll number:" << endl;
+                cout
+                    << "Enter new roll number:" << endl;
 
                 cin >> temp->roll;
                 break;
@@ -154,8 +162,11 @@ void updateRecord(Student *&head, int key)
                 break;
             }
 
-            cout << "Record updated successfully" << endl;
-            cout << "Updated record: " << temp->roll << "\t" << temp->name << endl;
+            cout << endl
+                 << "Record updated successfully" << endl;
+            cout << endl
+                 << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
+            cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl;
             flag = true;
             break;
         }
@@ -163,31 +174,153 @@ void updateRecord(Student *&head, int key)
     }
     if (!flag)
     {
-        cout << "Record not found wit roll number " << key << endl;
+        cout << endl
+             << "Record not found with roll number " << key << endl;
     }
 }
 
-void deleteRecord(Student *&head, int key)
+bool isEmpty(Student *head)
+{
+    if (head == NULL)
+    {
+        cout << endl
+             << "No Record To Delete" << endl;
+        return true;
+    }
+    return false;
+}
+
+void deleteRecords(Student *&head, int key)
 {
     bool flag;
+    if (head == NULL)
+    {
+        return;
+    }
+
+    if (head->roll == key)
+    {
+        Student *toDelete = head;
+        head = head->next;
+        delete toDelete;
+        flag = true;
+    }
+    else
+    {
+        Student *temp = head;
+        while (temp != NULL)
+        {
+            if (temp->next->roll == key)
+            {
+                Student *todelete = temp->next;
+                temp->next = temp->next->next;
+                delete todelete;
+                flag = true;
+                break;
+            }
+
+            temp = temp->next;
+        }
+        head = temp;
+    }
+
+    if (flag)
+    {
+        cout << "Record Deleted Successfully" << endl;
+    }
+    else
+    {
+        cout << "Record not found with roll number " << key << endl;
+    }
+}
+
+void MergeSort(Student *&head)
+{
+    Student *temp = head;
+
+    if ((temp == NULL) ||
+        (temp->next == NULL))
+    {
+        return;
+    }
+
+    Student *a, *b;
+
+    FrontBackSplit(temp, a, b);
+
+    MergeSort(a);
+    MergeSort(b);
+
+    head = SortedMerge(a, b);
+}
+
+Student *SortedMerge(Student *&a, Student *&b)
+{
+    Student *result = NULL;
+
+    if (a == NULL)
+        return (b);
+    else if (b == NULL)
+        return (a);
+
+    if (a->roll <= b->roll)
+    {
+        result = a;
+        result->next = SortedMerge(a->next, b);
+    }
+    else
+    {
+        result = b;
+        result->next = SortedMerge(a, b->next);
+    }
+    return (result);
+}
+
+void FrontBackSplit(Student *source, Student *&frontRef, Student *&backRef)
+{
+    Student *fast;
+    Student *slow;
+    slow = source;
+    fast = source->next;
+
+    while (fast != NULL)
+    {
+        fast = fast->next;
+        if (fast != NULL)
+        {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    frontRef = source;
+    backRef = slow->next;
+    slow->next = NULL;
+}
+
+void storeToDrive(Student *&head)
+{
+    ofstream file;
+    (isDataReaded) ? (file.open(filename, ios::out | ios::binary)) : file.open(filename, ios::ate | ios::binary);
+
+    if (file.fail())
+    {
+        cout << "File not found!" << endl;
+        return;
+    }
+    if (head == NULL)
+    {
+        cout << "No records to save!" << endl;
+        return;
+    }
+
     Student *temp = head;
     while (temp != NULL)
     {
-        if (temp->next->roll == key)
-        {
-            temp = temp->next->next;
-            cout << "Record deleted successfully" << endl;
-            flag = true;
-
-            break;
-        }
+        file.write((char *)temp, sizeof(*temp));
         temp = temp->next;
     }
-    head = temp;
-    if (!flag)
-    {
-        cout << "Record not found wit roll number " << key << endl;
-    }
+    file.close();
 }
 
 int menu()
@@ -215,6 +348,9 @@ int main()
 
     while (1)
     {
+        cout << "STUDENT MANAGEMENT SYSTEM" << endl
+             << endl;
+        // isDataReaded = readFromDisk(head);
         switch (menu())
         {
         case 1:
@@ -223,55 +359,93 @@ int main()
             {
                 cout << "Enter roll number: ";
                 cin >> roll;
-                cout << "Enter name: " << endl;
+                cout << "Enter name: ";
                 cin.ignore();
-
                 getline(cin, name);
 
                 insertAtTail(head, roll, name);
-                cout << "Enter y to add more records... ";
+                cout << endl
+                     << "Enter y to add more records... ";
                 cin >> y;
             } while (y == 'y' || y == 'Y');
+            system("cls");
             break;
         case 2:
             display(head);
+            cout << endl
+                 << "Press any key to continue..." << endl;
+            getch();
+            system("cls");
             break;
         case 3:
             do
             {
-                cout << "Enter roll number to search for a record: ";
+                cout << endl
+                     << "Enter roll number to search for a record: ";
                 cin >> key;
                 search(head, key);
-                cout << "Enter y to search for more records... ";
+                cout << endl
+                     << "Enter y to search for more records... ";
                 cin >> y;
             } while (y == 'y' || y == 'Y');
+            system("cls");
             break;
         case 4:
             do
             {
-                cout << "Enter roll number to update record" << endl;
+                cout << endl
+                     << "Enter roll number to update record: ";
                 cin >> key;
                 updateRecord(head, key);
-                cout << "Enter y to update more records... ";
+                cout << endl
+                     << "Enter y to update more records... ";
                 cin >> y;
             } while (y == 'y' || y == 'Y');
+            system("cls");
             break;
         case 5:
-            do
+            if (isEmpty(head))
             {
-                cout << "Enter roll number to delete record" << endl;
-                cin >> key;
-                deleteRecord(head, key);
-                cout << "Enter y to delete more records... ";
-                cin >> y;
-            } while (y == 'y' || y == 'Y');
+                cout << endl
+                     << "Press any key to contiue..." << endl;
+                getch();
+            }
+            else
+            {
+                do
+                {
+                    cout << endl
+                         << "Enter roll number to delete record" << endl;
+                    cin >> key;
+                    deleteRecords(head, key);
+                    if (isEmpty(head))
+                    {
+                        y = 'n';
+                    }
+                    else
+                    {
+                        cout << endl
+                             << "Enter y to delete more records... ";
+                        cin >> y;
+                    }
+
+                } while (y == 'y' || y == 'Y');
+            }
+            system("cls");
             break;
         case 6:
+            MergeSort(head);
+            // removeDuplicateRecords();
+            storeToDrive(head);
             exit(6);
             break;
         default:
             cout << "Invalid Choice!" << endl;
         }
+
+        MergeSort(head);
+        // removeDuplicateRecords();
+        storeToDrive(head);
     }
     return 0;
 }
