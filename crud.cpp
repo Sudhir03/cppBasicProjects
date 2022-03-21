@@ -61,16 +61,17 @@ bool readFromDisk(Student *&head)
         return false;
     }
 
-    Student toReadData;
+    // Student toReadData;
 
-    file.read((char *)&toReadData, sizeof(toReadData));
-    while (!file.eof())
-    {
-        insertAtTail(head, toReadData.roll, toReadData.name);
-        file.read((char *)&toReadData, sizeof(toReadData));
-    }
-    file.close();
-    return true;
+    // file.read((char *)&toReadData, sizeof(toReadData));
+    // while (!file.eof())
+    // {
+    //     insertAtTail(head, toReadData.roll, toReadData.name);
+    //     file.read((char *)&toReadData, sizeof(toReadData));
+    // }
+    // file.close();
+    // return true;
+    return false;
 }
 
 void display(Student *head)
@@ -181,19 +182,13 @@ void updateRecord(Student *&head, int key)
 
 bool isEmpty(Student *head)
 {
-    if (head == NULL)
-    {
-        cout << endl
-             << "No Record To Delete" << endl;
-        return true;
-    }
-    return false;
+    return (head == NULL) ? true : false;
 }
 
 void deleteRecords(Student *&head, int key)
 {
     bool flag;
-    if (head == NULL)
+    if (isEmpty(head))
     {
         return;
     }
@@ -297,6 +292,28 @@ void FrontBackSplit(Student *source, Student *&frontRef, Student *&backRef)
     backRef = slow->next;
     slow->next = NULL;
 }
+void removeDuplicateData(Student *&head)
+{
+    if (isEmpty(head))
+    {
+        return;
+    }
+
+    Student *temp = head, *prev = head;
+    while (temp != NULL)
+    {
+        if (temp->roll != prev->roll)
+        {
+            prev->next = temp;
+            prev = temp;
+        }
+        temp = temp->next;
+    }
+    if (prev != temp)
+    {
+        prev->next = NULL;
+    }
+}
 
 void storeToDrive(Student *&head)
 {
@@ -308,9 +325,8 @@ void storeToDrive(Student *&head)
         cout << "File not found!" << endl;
         return;
     }
-    if (head == NULL)
+    if (isEmpty(head))
     {
-        cout << "No records to save!" << endl;
         return;
     }
 
@@ -350,7 +366,7 @@ int main()
     {
         cout << "STUDENT MANAGEMENT SYSTEM" << endl
              << endl;
-        // isDataReaded = readFromDisk(head);
+        isDataReaded = readFromDisk(head);
         switch (menu())
         {
         case 1:
@@ -407,6 +423,8 @@ int main()
             if (isEmpty(head))
             {
                 cout << endl
+                     << "No Record To Delete" << endl;
+                cout << endl
                      << "Press any key to contiue..." << endl;
                 getch();
             }
@@ -435,7 +453,7 @@ int main()
             break;
         case 6:
             MergeSort(head);
-            // removeDuplicateRecords();
+            removeDuplicateData(head);
             storeToDrive(head);
             exit(6);
             break;
@@ -444,7 +462,7 @@ int main()
         }
 
         MergeSort(head);
-        // removeDuplicateRecords();
+        removeDuplicateData(head);
         storeToDrive(head);
     }
     return 0;
