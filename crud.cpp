@@ -1,6 +1,6 @@
 using namespace std;
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <conio.h>
@@ -12,17 +12,17 @@ class Student
 {
 public:
     int roll;
-    string name;
+    char name[20];
     Student *next;
 
     Student()
     {
     }
 
-    Student(int r, string n)
+    Student(int r, char *n)
     {
         roll = r;
-        name = n;
+        strcpy(name, n);
         next = NULL;
     }
 };
@@ -30,7 +30,7 @@ public:
 Student *SortedMerge(Student *&, Student *&);
 void FrontBackSplit(Student *, Student *&, Student *&);
 
-void insertAtTail(Student *&head, int r, string n)
+void insertAtTail(Student *&head, int r, char *n)
 {
 
     Student *p = new Student(r, n);
@@ -51,27 +51,26 @@ void insertAtTail(Student *&head, int r, string n)
 
 bool readFromDisk(Student *&head)
 {
-
     ifstream file;
     file.open(filename, ios::in | ios::binary);
     if (file.fail())
     {
-        cout << "File not found!" << endl
-             << "Restart Your Program" << endl;
+        ofstream file;
+        file.open(filename, ios::out);
+        file.close();
         return false;
     }
 
-    // Student toReadData;
-
-    // file.read((char *)&toReadData, sizeof(toReadData));
-    // while (!file.eof())
-    // {
-    //     insertAtTail(head, toReadData.roll, toReadData.name);
-    //     file.read((char *)&toReadData, sizeof(toReadData));
-    // }
-    // file.close();
-    // return true;
-    return false;
+    Student temp;
+    file.read((char *)&temp, sizeof(temp));
+    while (!file.eof())
+    {
+        cout << "Roll " << temp.roll << " & "
+             << "Name is " << temp.name << endl;
+        file.read((char *)&temp, sizeof(temp));
+    }
+    file.close();
+    return true;
 }
 
 void display(Student *head)
@@ -118,7 +117,7 @@ void search(Student *head, int key)
 void updateRecord(Student *&head, int key)
 {
     bool flag;
-    string name;
+    char name[20];
     int choice;
     Student *temp = head;
     while (temp != NULL)
@@ -147,16 +146,16 @@ void updateRecord(Student *&head, int key)
             case 2:
                 cout << "Enter new name:" << endl;
                 cin.ignore();
-                getline(cin, name);
-                temp->name = name;
+                cin.getline(name, 20);
+                strcpy(temp->name, name);
                 break;
             case 3:
                 cout << "Enter new roll number:" << endl;
                 cin >> temp->roll;
                 cout << "Enter new name:" << endl;
                 cin.ignore();
-                getline(cin, name);
-                temp->name = name;
+                cin.getline(name, 20);
+                strcpy(temp->name, name);
                 break;
             default:
                 cout << "Invalid Choice!" << endl;
@@ -292,26 +291,37 @@ void FrontBackSplit(Student *source, Student *&frontRef, Student *&backRef)
     backRef = slow->next;
     slow->next = NULL;
 }
-void removeDuplicateData(Student *&head)
+void removeDuplicates(Student *head)
 {
     if (isEmpty(head))
     {
         return;
     }
 
-    Student *temp = head, *prev = head;
-    while (temp != NULL)
+    Student *temp, *temp2;
+    temp = head;
+
+    while (temp != NULL && temp->next != NULL)
     {
-        if (temp->roll != prev->roll)
+        temp2 = temp;
+
+        while (temp2->next != NULL)
         {
-            prev->next = temp;
-            prev = temp;
+            /* If duplicate then delete it */
+            if (temp->roll == temp2->next->roll)
+            {
+                Student *todelete;
+                todelete = temp2->next;
+                temp2->next = temp2->next->next;
+                delete (todelete);
+
+                if (temp2->next == NULL)
+                {
+                    return;
+                }
+            }
         }
         temp = temp->next;
-    }
-    if (prev != temp)
-    {
-        prev->next = NULL;
     }
 }
 
@@ -360,7 +370,7 @@ int main()
 
     int key, roll;
     char y;
-    string name;
+    char name[20];
 
     while (1)
     {
@@ -377,7 +387,7 @@ int main()
                 cin >> roll;
                 cout << "Enter name: ";
                 cin.ignore();
-                getline(cin, name);
+                cin.getline(name, 20);
 
                 insertAtTail(head, roll, name);
                 cout << endl
@@ -453,7 +463,7 @@ int main()
             break;
         case 6:
             MergeSort(head);
-            removeDuplicateData(head);
+            // removeDuplicates(head);
             storeToDrive(head);
             exit(6);
             break;
@@ -462,7 +472,7 @@ int main()
         }
 
         MergeSort(head);
-        removeDuplicateData(head);
+        // removeDuplicates(head);
         storeToDrive(head);
     }
     return 0;
