@@ -53,6 +53,7 @@ bool readFromDisk(Student *&head)
 {
     ifstream file;
     file.open(filename, ios::in | ios::binary);
+
     if (file.fail())
     {
         ofstream file;
@@ -65,8 +66,6 @@ bool readFromDisk(Student *&head)
     file.read((char *)&temp, sizeof(temp));
     while (!file.eof())
     {
-        cout << "Roll " << temp.roll << " & "
-             << "Name is " << temp.name << endl;
         file.read((char *)&temp, sizeof(temp));
     }
     file.close();
@@ -328,6 +327,7 @@ void removeDuplicates(Student *head)
 void storeToDrive(Student *&head)
 {
     ofstream file;
+    cout << isDataReaded << endl;
     (isDataReaded) ? (file.open(filename, ios::out | ios::binary)) : file.open(filename, ios::ate | ios::binary);
 
     if (file.fail())
@@ -341,7 +341,7 @@ void storeToDrive(Student *&head)
     }
 
     Student *temp = head;
-    while (temp != NULL)
+    while (temp->next != NULL)
     {
         file.write((char *)temp, sizeof(*temp));
         temp = temp->next;
@@ -366,7 +366,7 @@ int menu()
 int main()
 
 {
-    Student *head;
+    Student *head = NULL;
 
     int key, roll;
     char y;
