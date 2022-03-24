@@ -1,8 +1,5 @@
 using namespace std;
-#include <iostream>
-#include <cstring>
-#include <fstream>
-#include <iomanip>
+#include <bits/stdc++.h>
 #include <conio.h>
 
 bool isDataReaded;
@@ -27,17 +24,18 @@ public:
     }
 };
 
-Student *SortedMerge(Student *&, Student *&);
-void FrontBackSplit(Student *, Student *&, Student *&);
-
-void insertAtTail(Student *&head, int r, char *n)
+bool isEmpty(Student *head)
 {
+    return (head == NULL) ? true : false;
+}
 
-    Student *p = new Student(r, n);
+void addNode(Student *&head, int r, char *n)
+{
+    Student *node = new Student(r, n);
 
-    if (head == NULL)
+    if (isEmpty(head))
     {
-        head = p;
+        head = node;
         return;
     }
 
@@ -46,66 +44,89 @@ void insertAtTail(Student *&head, int r, char *n)
     {
         temp = temp->next;
     }
-    temp->next = p;
-}
-
-bool readFromDisk(Student *&head)
-{
-    ifstream file;
-    file.open(filename, ios::in | ios::binary);
-
-    if (file.fail())
-    {
-        ofstream file;
-        file.open(filename, ios::out);
-        file.close();
-        return false;
-    }
-
-    Student temp;
-    file.read((char *)&temp, sizeof(temp));
-    while (!file.eof())
-    {
-        file.read((char *)&temp, sizeof(temp));
-    }
-    file.close();
-    return true;
+    temp->next = node;
 }
 
 void display(Student *head)
 {
 
-    if (head == NULL)
+    if (isEmpty(head))
     {
-        cout << "No records to show" << endl;
+        cout << "Your record file is empty" << endl;
         return;
     }
-    cout << endl
-         << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
+    cout << left << setw(10) << "Roll No." << left << setw(20) << "Name" << endl;
+
+    while (head != NULL)
+    {
+        cout << left << setw(10) << head->roll << left << setw(20) << head->name << endl;
+        head = head->next;
+    }
+}
+
+void readFromDisk(Student *&head)
+{
+    ifstream filein;
+    filein.open(filename, ios::in | ios::binary);
+
+    if (filein.fail())
+    {
+        ofstream fileout;
+        fileout.open(filename, ios::out);
+        fileout.close();
+        filein.open(filename, ios::in | ios::binary);
+        (filein.fail()) ? isDataReaded = false : isDataReaded = true;
+    }
+
+    Student temp;
+    filein.read((char *)&temp, sizeof(temp));
+    while (!filein.eof())
+    {
+        addNode(head, temp.roll, temp.name);
+        filein.read((char *)&temp, sizeof(temp));
+    }
+    filein.close();
+    isDataReaded = true;
+}
+
+void storeData(Student *&head)
+{
+    if (isEmpty(head))
+    {
+        return;
+    }
+
+    ofstream file;
+    (isDataReaded) ? (file.open(filename, ios::out | ios::binary)) : file.open(filename, ios::app | ios::binary);
+
+    if (file.fail())
+    {
+        cout << "File not found!" << endl;
+        return;
+    }
     Student *temp = head;
     while (temp != NULL)
     {
-
-        cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl;
+        file.write((char *)temp, sizeof(*temp));
         temp = temp->next;
     }
+    file.close();
 }
 
 void search(Student *head, int key)
 {
     bool flag;
-    Student *temp = head;
-    while (temp != NULL)
+    while (head != NULL)
     {
-        if (temp->roll == key)
+        if (head->roll == key)
         {
+            cout << "Record found with roll number " << key << endl;
             cout << endl
-                 << "Record found with roll number " << key << endl;
-            cout << temp->roll << "\t" << temp->name << endl;
+                 << left << setw(10) << "Roll No." << left << setw(20) << "Name" << endl;
+            cout << left << setw(10) << head->roll << left << setw(20) << head->name << endl;
             flag = true;
-            break;
         }
-        temp = temp->next;
+        head = head->next;
     }
     if (!flag)
     {
@@ -123,12 +144,12 @@ void updateRecord(Student *&head, int key)
     {
         if (temp->roll == key)
         {
+            cout << "Record found with roll number " << key << endl;
             cout << endl
-                 << "Record found with roll number " << key << endl;
-            cout << endl
-                 << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
-            cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl
+                 << left << setw(10) << "Roll No." << left << setw(20) << "Name" << endl;
+            cout << left << setw(10) << temp->roll << left << setw(20) << temp->name << endl
                  << endl;
+            cout << "Choose options to continue..." << endl;
             cout << "Press 1 to update roll number:" << endl;
             cout << "Press 2  to update name:" << endl;
             cout << "Press 3 to update both:" << endl;
@@ -137,9 +158,7 @@ void updateRecord(Student *&head, int key)
             switch (choice)
             {
             case 1:
-                cout
-                    << "Enter new roll number:" << endl;
-
+                cout << "Enter new roll number:" << endl;
                 cin >> temp->roll;
                 break;
             case 2:
@@ -164,8 +183,8 @@ void updateRecord(Student *&head, int key)
             cout << endl
                  << "Record updated successfully" << endl;
             cout << endl
-                 << left << setw(10) << "Roll No." << left << setw(24) << "Name" << endl;
-            cout << left << setw(10) << temp->roll << left << setw(24) << temp->name << endl;
+                 << left << setw(10) << "Roll No." << left << setw(20) << "Name" << endl;
+            cout << left << setw(10) << temp->roll << left << setw(20) << temp->name << endl;
             flag = true;
             break;
         }
@@ -173,23 +192,13 @@ void updateRecord(Student *&head, int key)
     }
     if (!flag)
     {
-        cout << endl
-             << "Record not found with roll number " << key << endl;
+        cout << "Record not found with roll number " << key << endl;
     }
-}
-
-bool isEmpty(Student *head)
-{
-    return (head == NULL) ? true : false;
 }
 
 void deleteRecords(Student *&head, int key)
 {
     bool flag;
-    if (isEmpty(head))
-    {
-        return;
-    }
 
     if (head->roll == key)
     {
@@ -201,20 +210,23 @@ void deleteRecords(Student *&head, int key)
     else
     {
         Student *temp = head;
-        while (temp != NULL)
+        Student *prev = NULL;
+        while (temp != NULL && temp->roll != key)
         {
-            if (temp->next->roll == key)
-            {
-                Student *todelete = temp->next;
-                temp->next = temp->next->next;
-                delete todelete;
-                flag = true;
-                break;
-            }
-
+            prev = temp;
             temp = temp->next;
         }
-        head = temp;
+
+        // If key was not present in linked list
+        if (temp == NULL)
+            return;
+
+        // Unlink the node from linked list
+        prev->next = temp->next;
+
+        // Free memory
+        delete temp;
+        flag = true;
     }
 
     if (flag)
@@ -225,26 +237,6 @@ void deleteRecords(Student *&head, int key)
     {
         cout << "Record not found with roll number " << key << endl;
     }
-}
-
-void MergeSort(Student *&head)
-{
-    Student *temp = head;
-
-    if ((temp == NULL) ||
-        (temp->next == NULL))
-    {
-        return;
-    }
-
-    Student *a, *b;
-
-    FrontBackSplit(temp, a, b);
-
-    MergeSort(a);
-    MergeSort(b);
-
-    head = SortedMerge(a, b);
 }
 
 Student *SortedMerge(Student *&a, Student *&b)
@@ -290,51 +282,29 @@ void FrontBackSplit(Student *source, Student *&frontRef, Student *&backRef)
     backRef = slow->next;
     slow->next = NULL;
 }
-void removeDuplicates(Student *head)
+
+void MergeSort(Student *&head)
 {
-    if (isEmpty(head))
+    Student *temp = head;
+
+    if ((head == NULL) ||
+        (head->next == NULL))
     {
         return;
     }
 
-    Student *temp, *temp2;
-    temp = head;
+    Student *a, *b;
 
-    while (temp != NULL && temp->next != NULL)
-    {
-        temp2 = temp;
+    FrontBackSplit(head, a, b);
 
-        while (temp2->next != NULL)
-        {
-            /* If duplicate then delete it */
-            if (temp->roll == temp2->next->roll)
-            {
-                Student *todelete;
-                todelete = temp2->next;
-                temp2->next = temp2->next->next;
-                delete (todelete);
+    MergeSort(a);
+    MergeSort(b);
 
-                if (temp2->next == NULL)
-                {
-                    return;
-                }
-            }
-        }
-        temp = temp->next;
-    }
+    head = SortedMerge(a, b);
 }
 
-void storeToDrive(Student *&head)
+void removeDuplicates(Student *&head)
 {
-    ofstream file;
-    cout << isDataReaded << endl;
-    (isDataReaded) ? (file.open(filename, ios::out | ios::binary)) : file.open(filename, ios::ate | ios::binary);
-
-    if (file.fail())
-    {
-        cout << "File not found!" << endl;
-        return;
-    }
     if (isEmpty(head))
     {
         return;
@@ -343,10 +313,28 @@ void storeToDrive(Student *&head)
     Student *temp = head;
     while (temp->next != NULL)
     {
-        file.write((char *)temp, sizeof(*temp));
-        temp = temp->next;
+        if (temp->roll == temp->next->roll)
+        {
+            Student *todelete = temp->next;
+            temp->next = temp->next->next;
+            delete (todelete);
+        }
+        else
+        {
+            temp = temp->next;
+        }
     }
-    file.close();
+}
+
+void deleteLinkedList(Student *&head)
+{
+    Student *temp = head;
+    while (temp != NULL)
+    {
+        temp = temp->next;
+        delete head;
+        head = temp;
+    }
 }
 
 int menu()
@@ -360,13 +348,13 @@ int menu()
     cout << "5. Delete Record" << endl;
     cout << "6. Quit" << endl;
     cin >> choice;
+    system("cls");
     return choice;
 }
 
 int main()
-
 {
-    Student *head = NULL;
+    Student *head;
 
     int key, roll;
     char y;
@@ -374,9 +362,11 @@ int main()
 
     while (1)
     {
+        head = NULL;
         cout << "STUDENT MANAGEMENT SYSTEM" << endl
              << endl;
-        isDataReaded = readFromDisk(head);
+        readFromDisk(head);
+
         switch (menu())
         {
         case 1:
@@ -389,7 +379,7 @@ int main()
                 cin.ignore();
                 cin.getline(name, 20);
 
-                insertAtTail(head, roll, name);
+                addNode(head, roll, name);
                 cout << endl
                      << "Enter y to add more records... ";
                 cin >> y;
@@ -404,67 +394,63 @@ int main()
             system("cls");
             break;
         case 3:
-            do
-            {
-                cout << endl
-                     << "Enter roll number to search for a record: ";
-                cin >> key;
-                search(head, key);
-                cout << endl
-                     << "Enter y to search for more records... ";
-                cin >> y;
-            } while (y == 'y' || y == 'Y');
-            system("cls");
-            break;
-        case 4:
-            do
-            {
-                cout << endl
-                     << "Enter roll number to update record: ";
-                cin >> key;
-                updateRecord(head, key);
-                cout << endl
-                     << "Enter y to update more records... ";
-                cin >> y;
-            } while (y == 'y' || y == 'Y');
-            system("cls");
-            break;
-        case 5:
             if (isEmpty(head))
             {
-                cout << endl
-                     << "No Record To Delete" << endl;
-                cout << endl
-                     << "Press any key to contiue..." << endl;
-                getch();
+                cout << "Your record file is empty" << endl;
             }
             else
             {
                 do
                 {
-                    cout << endl
-                         << "Enter roll number to delete record" << endl;
+                    cout << "Enter roll number to search for a record: ";
                     cin >> key;
-                    deleteRecords(head, key);
-                    if (isEmpty(head))
-                    {
-                        y = 'n';
-                    }
-                    else
-                    {
-                        cout << endl
-                             << "Enter y to delete more records... ";
-                        cin >> y;
-                    }
-
+                    search(head, key);
+                    cout << endl
+                         << "Enter y to search for more records... ";
+                    cin >> y;
                 } while (y == 'y' || y == 'Y');
+                system("cls");
             }
+            break;
+        case 4:
+            if (isEmpty(head))
+            {
+                cout << "Your record file is empty" << endl;
+            }
+            else
+            {
+                do
+                {
+                    cout << "Enter roll number to update record: ";
+                    cin >> key;
+                    updateRecord(head, key);
+                    cout << endl
+                         << "Enter y to update more records... ";
+                    cin >> y;
+                } while (y == 'y' || y == 'Y');
+                system("cls");
+            }
+            break;
+        case 5:
+            if (isEmpty(head))
+            {
+                cout << "Your record file is empty" << endl;
+                cout << endl
+                     << "Press any key to contiue..." << endl;
+                getch();
+                break;
+            }
+            cout << endl
+                 << "Enter roll number to delete record" << endl;
+            cin >> key;
+            deleteRecords(head, key);
             system("cls");
             break;
         case 6:
             MergeSort(head);
-            // removeDuplicates(head);
-            storeToDrive(head);
+            removeDuplicates(head);
+            storeData(head);
+            deleteLinkedList(head);
             exit(6);
             break;
         default:
@@ -472,8 +458,9 @@ int main()
         }
 
         MergeSort(head);
-        // removeDuplicates(head);
-        storeToDrive(head);
+        removeDuplicates(head);
+        storeData(head);
+        deleteLinkedList(head);
     }
     return 0;
 }
